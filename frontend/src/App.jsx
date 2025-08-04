@@ -15,12 +15,17 @@ import BreathingExercise from './components/Breathing/BreathingExercise.jsx';
 import GuidedMeditation from './components/Meditation/GuidedMeditation.jsx';
 import GratitudeLog from './components/Gratitude/GratitudeLog.jsx';
 import GoalSetting from './components/Goals/GoalSetting.jsx';
+import { ProgressLogModal, CheckInModal } from './components/Goals/GoalModals.jsx';
 import GoalAnalytics from './components/Goals/GoalAnalytics.jsx';
 import './App.css';
 
 function AppContent() {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showProgressLog, setShowProgressLog] = useState(false);
+  const [showCheckIn, setShowCheckIn] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   if (!user) {
     return <Auth />;
@@ -29,7 +34,7 @@ function AppContent() {
   return (
     <div className="flex h-screen bg-mist">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
         <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-mist p-6">
           <Routes>
@@ -40,13 +45,44 @@ function AppContent() {
             <Route path="/breathing" element={<BreathingExercise />} />
             <Route path="/meditation" element={<GuidedMeditation />} />
             <Route path="/gratitude" element={<GratitudeLog />} />
-            <Route path="/goals" element={<GoalSetting />} />
+            <Route path="/goals" element={<GoalSetting setShowProgressLog={setShowProgressLog} setShowCheckIn={setShowCheckIn} setSelectedGoal={setSelectedGoal} />} />
             <Route path="/goals/analytics" element={<GoalAnalytics />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
+      {showProgressLog && selectedGoal && (
+        <ProgressLogModal
+          goal={selectedGoal}
+          onClose={() => {
+            setShowProgressLog(false);
+            setSelectedGoal(null);
+          }}
+          onSubmit={(logData) => {
+            // This needs to be connected to the GoalProvider
+            console.log(logData);
+            setShowProgressLog(false);
+            setSelectedGoal(null);
+          }}
+        />
+      )}
+      {showCheckIn && selectedGoal && (
+        <CheckInModal
+          goal={selectedGoal}
+          isLoading={aiLoading}
+          onClose={() => {
+            setShowCheckIn(false);
+            setSelectedGoal(null);
+          }}
+          onSubmit={(responses) => {
+            // This needs to be connected to the GoalProvider
+            console.log(responses);
+            setShowCheckIn(false);
+            setSelectedGoal(null);
+          }}
+        />
+      )}
     </div>
   );
 }
