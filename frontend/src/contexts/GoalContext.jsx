@@ -3,6 +3,8 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 const GoalContext = createContext();
 
 export const GoalProvider = ({ children }) => {
+  const [goals, setGoals] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(() => {
     // Initialize fresh state (clear any corrupted localStorage)
     const today = new Date().toDateString();
@@ -148,19 +150,111 @@ export const GoalProvider = ({ children }) => {
     localStorage.setItem('dailyGoalDate', today);
   };
 
+  const fetchGoals = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5002/api/goals', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGoals(data);
+      } else {
+        console.error('Failed to fetch goals:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+    }
+  };
+
+  const logProgress = async (goalId, progressData) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to log progress');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/log`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(progressData)
+      });
+
+      if (response.ok) {
+        const updatedGoal = await response.json();
+        setGoals(goals.map(goal =>
+          goal._id === goalId ? updatedGoal : goal
+        ));
+        fetchGoals();
+        return updatedGoal;
+      } else {
+        const error = await response.json();
+        alert(`Failed to log progress: ${error.message}`);
+      }
+    } catch (error) {
+      console.error('Error logging progress:', error);
+      alert('Failed to log progress. Please try again.');
+    }
+  };
+
+  const checkIn = async (goalId, responses) => {
+    try {
+      setAiLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/checkin`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ responses })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Check-in completed:', result.message);
+        fetchGoals();
+      }
+    } catch (error) {
+      console.error('Error during check-in:', error);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const currentCompletedCount = calculateCompletedCount();
 
   return (
-    <GoalContext.Provider value={{ 
-      dailyGoal: { 
-        ...dailyGoal, 
+    <GoalContext.Provider value={{
+      dailyGoal: {
+        ...dailyGoal,
         completed: currentCompletedCount,
-        completionState: dailyGoal.completed 
+        completionState: dailyGoal.completed
       },
+      goals,
+      aiLoading,
+      fetchGoals,
       markChatCompleted,
       markJournalCompleted,
       markEmotionCompleted,
       resetDailyGoal,
+      logProgress,
+      checkIn,
     }}>
       {children}
     </GoalContext.Provider>

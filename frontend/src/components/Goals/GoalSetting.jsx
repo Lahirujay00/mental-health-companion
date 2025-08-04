@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useGoal } from '../../contexts/GoalContext.jsx';
+
 const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) => {
   const navigate = useNavigate();
-  const [goals, setGoals] = useState([]);
+  const { goals, fetchGoals, aiLoading } = useGoal();
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [aiLoading, setAiLoading] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: '',
     category: 'anxiety',
@@ -44,40 +45,9 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
     custom: 'Custom'
   };
 
-  // Load goals from backend API
   useEffect(() => {
-    fetchGoals();
+    fetchGoals().then(() => setLoading(false));
   }, []);
-
-  const fetchGoals = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No authentication token found');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch('http://localhost:5002/api/goals', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setGoals(data);
-      } else {
-        console.error('Failed to fetch goals:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error fetching goals:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addGoal = async () => {
     if (!newGoal.title || !newGoal.target) {
@@ -110,8 +80,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
       });
 
       if (response.ok) {
-        const savedGoal = await response.json();
-        setGoals([savedGoal, ...goals]);
+        fetchGoals();
         resetNewGoal();
         setShowAddForm(false);
       } else {
@@ -124,69 +93,6 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
     }
   };
 
-  const logProgress = async (goalId, progressData) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please log in to log progress');
-        return;
-      }
-
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/log`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(progressData)
-      });
-
-      if (response.ok) {
-        const updatedGoal = await response.json();
-        setGoals(goals.map(goal => 
-          goal._id === goalId ? updatedGoal : goal
-        ));
-        
-        // Force a re-fetch of goals to ensure fresh data for analytics
-        fetchGoals();
-        
-        return updatedGoal;
-      } else {
-        const error = await response.json();
-        alert(`Failed to log progress: ${error.message}`);
-      }
-    } catch (error) {
-      console.error('Error logging progress:', error);
-      alert('Failed to log progress. Please try again.');
-    }
-  };
-
-  const checkIn = async (goalId, responses) => {
-    try {
-      setAiLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/checkin`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ responses })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Check-in completed:', result.message);
-        await fetchGoals(); // Refresh to get updated feedback
-      }
-    } catch (error) {
-      console.error('Error during check-in:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const deleteGoal = async (goalId) => {
     if (!window.confirm('Are you sure you want to delete this goal?')) {
@@ -208,7 +114,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
       });
 
       if (response.ok) {
-        setGoals(goals.filter(goal => goal._id !== goalId));
+        fetchGoals();
       } else {
         const error = await response.json();
         alert(`Failed to delete goal: ${error.message}`);
@@ -617,7 +523,10 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
                   {/* Actions */}
                   <div className="flex justify-between">
                     <button
-                      onClick={() => logProgress(goal._id, { completed: true })}
+                      onClick={() => {
+                        setSelectedGoal(goal);
+                        setShowProgressLog(true);
+                      }}
                       className="text-green-600 text-sm font-medium hover:text-green-700"
                     >
                       ✅ Mark Complete

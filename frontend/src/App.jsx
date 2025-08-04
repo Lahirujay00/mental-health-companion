@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
-import { GoalProvider } from './contexts/GoalContext.jsx';
+import { GoalProvider, useGoal } from './contexts/GoalContext.jsx';
 import Navbar from './components/Layout/Navbar.jsx';
 import Sidebar from './components/Layout/Sidebar.jsx';
 import Auth from './components/Auth/Auth.jsx';
@@ -21,11 +21,11 @@ import './App.css';
 
 function AppContent() {
   const { user } = useAuth();
+  const { logProgress, checkIn, aiLoading } = useGoal();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showProgressLog, setShowProgressLog] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
 
   if (!user) {
     return <Auth />;
@@ -60,8 +60,7 @@ function AppContent() {
             setSelectedGoal(null);
           }}
           onSubmit={(logData) => {
-            // This needs to be connected to the GoalProvider
-            console.log(logData);
+            logProgress(selectedGoal._id, logData);
             setShowProgressLog(false);
             setSelectedGoal(null);
           }}
@@ -76,8 +75,7 @@ function AppContent() {
             setSelectedGoal(null);
           }}
           onSubmit={(responses) => {
-            // This needs to be connected to the GoalProvider
-            console.log(responses);
+            checkIn(selectedGoal._id, responses);
             setShowCheckIn(false);
             setSelectedGoal(null);
           }}
