@@ -4,7 +4,7 @@ const GoalContext = createContext();
 
 export const GoalProvider = ({ children }) => {
   const [goals, setGoals] = useState([]);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [loadingGoalId, setLoadingGoalId] = useState(null);
   const [dailyGoal, setDailyGoal] = useState(() => {
     // Initialize fresh state (clear any corrupted localStorage)
     const today = new Date().toDateString();
@@ -212,7 +212,7 @@ export const GoalProvider = ({ children }) => {
 
   const checkIn = async (goalId, responses) => {
     try {
-      setAiLoading(true);
+      setLoadingGoalId(goalId);
       const token = localStorage.getItem('token');
       if (!token) return;
 
@@ -233,7 +233,7 @@ export const GoalProvider = ({ children }) => {
     } catch (error) {
       console.error('Error during check-in:', error);
     } finally {
-      setAiLoading(false);
+      setLoadingGoalId(null);
     }
   };
 
@@ -247,7 +247,7 @@ export const GoalProvider = ({ children }) => {
         completionState: dailyGoal.completed
       },
       goals,
-      aiLoading,
+      loadingGoalId,
       fetchGoals,
       markChatCompleted,
       markJournalCompleted,

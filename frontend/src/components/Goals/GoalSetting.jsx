@@ -5,7 +5,7 @@ import { useGoal } from '../../contexts/GoalContext.jsx';
 
 const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) => {
   const navigate = useNavigate();
-  const { goals, fetchGoals, aiLoading } = useGoal();
+  const { goals, fetchGoals, loadingGoalId } = useGoal();
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [newGoal, setNewGoal] = useState({
@@ -481,13 +481,13 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
                   </div>
 
                   {/* Latest AI Feedback */}
-                  {(goal.aiFeedback && goal.aiFeedback.length > 0) || aiLoading ? (
+                  {(goal.aiFeedback && goal.aiFeedback.length > 0) || loadingGoalId === goal._id ? (
                     <div className="bg-gradient-to-r from-green-50 to-teal-50 p-3 rounded-lg mb-4">
                       <div className="flex items-start space-x-2">
                         <span className="text-lg">💭</span>
                         <div className="flex-1">
                           <p className="text-xs font-medium text-green-700 mb-1">Latest Feedback</p>
-                          {aiLoading ? (
+                          {loadingGoalId === goal._id ? (
                             <div className="flex items-center space-x-2">
                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent"></div>
                               <p className="text-sm text-green-600 italic">Getting personalized AI guidance...</p>

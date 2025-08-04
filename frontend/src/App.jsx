@@ -21,7 +21,7 @@ import './App.css';
 
 function AppContent() {
   const { user } = useAuth();
-  const { logProgress, checkIn, aiLoading } = useGoal();
+  const { logProgress, checkIn, loadingGoalId } = useGoal();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showProgressLog, setShowProgressLog] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
@@ -69,7 +69,7 @@ function AppContent() {
       {showCheckIn && selectedGoal && (
         <CheckInModal
           goal={selectedGoal}
-          isLoading={aiLoading}
+          isLoading={loadingGoalId === selectedGoal?._id}
           onClose={() => {
             setShowCheckIn(false);
             setSelectedGoal(null);
