@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const BreathingExercise = () => {
   const [phase, setPhase] = useState('ready'); // ready, inhale, hold, exhale, pause
   const [count, setCount] = useState(4);
   const [isActive, setIsActive] = useState(false);
   const [message, setMessage] = useState('Ready to begin?');
-  const [timerId, setTimerId] = useState(null);
+  const timerId = useRef(null);
   const [exerciseType, setExerciseType] = useState('4-4-4-4'); // Default breathing pattern
   const [completedCycles, setCompletedCycles] = useState(0);
 
@@ -58,34 +58,38 @@ const BreathingExercise = () => {
     setPhase('ready');
     setCount(0);
     setMessage(`Great job! You completed ${completedCycles} breathing cycles.`);
-    if (timerId) {
-      clearInterval(timerId);
-      setTimerId(null);
+    if (timerId.current) {
+      clearInterval(timerId.current);
+      timerId.current = null;
     }
   };
 
   useEffect(() => {
     if (!isActive || phase === 'ready') {
-      if (timerId) clearInterval(timerId);
-      setTimerId(null);
+      if (timerId.current) {
+        clearInterval(timerId.current);
+        timerId.current = null;
+      }
       return;
     }
 
     const currentPhase = phases[phase];
     setMessage(`${currentPhase.message}`);
 
+    // This effect will now re-run on every count change, creating a chain of timeouts.
+    // This is a common and safer pattern for timers in React.
     if (count > 0) {
-      const id = setInterval(() => {
+      const id = setTimeout(() => {
         setCount(prevCount => {
           if (prevCount <= 1) {
             // Moving to next phase
-            const nextPhase = phases[currentPhase.next];
-            setPhase(currentPhase.next);
-            setCount(nextPhase.duration);
+            const nextPhaseKey = phases[phase].next;
+            const nextPhase = phases[nextPhaseKey];
+            setPhase(nextPhaseKey);
             setMessage(nextPhase.message);
             
             // Count completed cycles (when returning to inhale)
-            if (currentPhase.next === 'inhale') {
+            if (nextPhaseKey === 'inhale') {
               setCompletedCycles(prev => prev + 1);
             }
             return nextPhase.duration;
@@ -93,11 +97,11 @@ const BreathingExercise = () => {
           return prevCount - 1;
         });
       }, 1000);
-      setTimerId(id);
+      timerId.current = id;
       
-      return () => clearInterval(id);
+      return () => clearTimeout(id);
     }
-  }, [isActive, phase]); // Removed count and timerId from dependencies
+  }, [isActive, phase, count, phases]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-calm-50 via-blue-50 to-purple-50 p-6">
