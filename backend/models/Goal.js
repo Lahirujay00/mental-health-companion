@@ -272,88 +272,43 @@ goalSchema.methods.updateStreak = function() {
 
 // Method to calculate overall progress
 goalSchema.methods.calculateProgress = function() {
-  if (this.timeframe === 'daily') {
-    // Calculate progress based on expected days since goal creation
-    const now = new Date();
-    const goalStart = this.createdAt || now;
-    const daysSinceCreation = Math.floor((now - goalStart) / (1000 * 60 * 60 * 24)) + 1; // +1 to include today
-    
-    // Use minimum 7 days for meaningful progress calculation
-    const expectedDays = Math.max(daysSinceCreation, 7);
-    
-    // Get all logs and count completed ones
-    const allLogs = this.dailyLogs.filter(log => log.date);
-    const completedLogs = allLogs.filter(log => log.completed).length;
-    
-    if (allLogs.length === 0) {
-      this.progress = 0;
-      return;
-    }
-    
-    // Calculate basic progress as percentage of expected days completed
-    let baseProgress = Math.round((completedLogs / expectedDays) * 100);
-    
-    // Cap at 100% and ensure minimum 0%
-    baseProgress = Math.max(0, Math.min(baseProgress, 100));
-    
-    // If we have recent logs (last 7 days), give slight boost for consistency
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const recentLogs = allLogs.filter(log => log.date >= sevenDaysAgo);
-    if (recentLogs.length >= 3) { // Need at least 3 recent logs for consistency bonus
-      const recentCompletedLogs = recentLogs.filter(log => log.completed).length;
-      const recentConsistency = recentCompletedLogs / recentLogs.length;
-      
-      // Small consistency bonus (max 10% boost)
-      const consistencyBonus = Math.round(recentConsistency * 10);
-      this.progress = Math.min(baseProgress + consistencyBonus, 100);
-    } else {
-      this.progress = baseProgress;
-    }
-    
-  } else if (this.deadline) {
-    // Calculate based on deadline and completion rate
-    const now = new Date();
-    const start = this.createdAt;
+  const now = new Date();
+  const start = this.createdAt;
+  const completedLogsCount = this.dailyLogs.filter(log => log.completed).length;
+
+  console.log('--- calculateProgress Debug ---');
+  console.log('Goal Title:', this.title);
+  console.log('createdAt:', start);
+  console.log('deadline:', this.deadline);
+  console.log('timeframe:', this.timeframe);
+  console.log('targetUnit:', this.targetUnit);
+  console.log('targetValue:', this.targetValue);
+  console.log('completedLogsCount:', completedLogsCount);
+
+  if (this.deadline) {
     const end = this.deadline;
-    
-    if (now >= end) {
-      // Past deadline - base on completion rate only
-      const allLogs = this.dailyLogs.filter(log => log.date);
-      if (allLogs.length > 0) {
-        const completedLogs = allLogs.filter(log => log.completed).length;
-        this.progress = Math.round((completedLogs / allLogs.length) * 100);
-      } else {
-        this.progress = 0;
-      }
+    const totalDurationDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    console.log('Branch: deadline exists');
+    console.log('totalDurationDays:', totalDurationDays);
+
+    if (totalDurationDays <= 0) {
+      this.progress = completedLogsCount > 0 ? 100 : 0;
     } else {
-      // Still within deadline - combine time and completion
-      const totalTime = end - start;
-      const elapsedTime = now - start;
-      const timeProgress = Math.max(0, Math.min(elapsedTime / totalTime, 1));
-      
-      // Get completion rate
-      const allLogs = this.dailyLogs.filter(log => log.date);
-      let completionRate = 0;
-      if (allLogs.length > 0) {
-        const completedLogs = allLogs.filter(log => log.completed).length;
-        completionRate = completedLogs / allLogs.length;
-      }
-      
-      // Weighted combination: 60% completion rate, 40% time progress
-      this.progress = Math.round((completionRate * 0.6 + timeProgress * 0.4) * 100);
+      this.progress = Math.min(100, Math.round((completedLogsCount / totalDurationDays) * 100));
     }
+  } else if (this.timeframe === 'daily' && this.targetUnit === 'days' && this.targetValue > 0) {
+    console.log('Branch: daily with target days');
+    this.progress = Math.min(100, Math.round((completedLogsCount / this.targetValue) * 100));
   } else {
-    // No deadline, use simple completion rate
-    const allLogs = this.dailyLogs.filter(log => log.date);
-    if (allLogs.length > 0) {
-      const completedLogs = allLogs.filter(log => log.completed).length;
-      this.progress = Math.round((completedLogs / allLogs.length) * 100);
-    } else {
-      this.progress = 0;
-    }
+    console.log('Branch: fallback/general daily');
+    const conceptualTotalDays = 30;
+    this.progress = Math.min(100, Math.round((completedLogsCount / conceptualTotalDays) * 100));
+    console.log('conceptualTotalDays used:', conceptualTotalDays);
   }
+
+  this.progress = Math.max(0, this.progress);
+  console.log('Final calculated progress:', this.progress);
+  console.log('-----------------------------');
 };
 
 // Method to add AI feedback

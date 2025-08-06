@@ -365,9 +365,8 @@ router.post('/:id/log', authenticateToken, async (req, res) => {
     if (completed && goal.status !== 'completed') {
       goal.status = 'completed';
       goal.completedAt = new Date();
-      // Set progress to 100% when manually marked as complete
-      goal.progress = 100;
     }
+    // The goal.progress will be calculated by goal.calculateProgress() called inside logDailyProgress
 
     // Generate AI feedback
     const feedback = await generateProgressFeedback(goal, { completed, mood, challenges, notes });
@@ -928,7 +927,7 @@ router.post('/update-daily-progress', authenticateToken, async (req, res) => {
         completed: true,
         value: 1,
         notes: `Completed ${activityType} activity`,
-        mood: 'positive'
+        mood: 5 // Changed from 'positive' to a numerical value
       });
 
       // Update progress (each daily completion = 100% for that day)
