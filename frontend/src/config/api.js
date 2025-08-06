@@ -42,5 +42,6 @@ export const API_ENDPOINTS = {
   dashboardActivities: `${API_BASE_URL}/dashboard/activities`,
 };
 
+// Export API_BASE_URL as both named and default export
 export { API_BASE_URL };
 export default API_BASE_URL;
