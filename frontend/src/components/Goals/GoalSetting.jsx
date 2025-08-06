@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGoal } from '../../contexts/GoalContext.jsx';
+import { API_BASE_URL } from '../../config/api';
 
 const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
         }
       };
 
-      const response = await fetch('http://localhost:5002/api/goals', {
+      const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -106,7 +107,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
         return;
       }
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

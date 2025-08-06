@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGoal } from '../../contexts/GoalContext.jsx';
+import { useAuth } from '../../contexts/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 // Mental Health Chat Component
 const Chat = () => {
@@ -31,7 +33,7 @@ const Chat = () => {
       const token = localStorage.getItem('token');
       console.log('Loading chat history, token:', token ? 'Present' : 'Missing');
       
-      const response = await fetch('http://localhost:5002/api/chat/history?limit=20', {
+      const response = await fetch(`${API_BASE_URL}/chat/history?limit=20`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -117,14 +119,15 @@ const Chat = () => {
       console.log('Sending message to backend:', messageText);
       console.log('Token:', token ? 'Present' : 'Missing');
       
-      const response = await fetch('http://localhost:5002/api/chat', {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: messageText
+          message: userMessage,
+          timestamp: new Date().toISOString()
         })
       });
 
