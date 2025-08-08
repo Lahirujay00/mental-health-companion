@@ -125,8 +125,7 @@ const Chat = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: userMessage,
-          timestamp: new Date().toISOString()
+          message: messageText
         })
       });
 
@@ -145,7 +144,7 @@ const Chat = () => {
         id: (Date.now() + 1).toString(),
         text: data.aiMessage.message,
         sender: 'ai',
-        timestamp: new Date(),
+        timestamp: new Date(data.aiMessage.createdAt),
       };
       
       setMessages(prev => [...prev, aiResponse]);
