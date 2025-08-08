@@ -260,9 +260,11 @@ const GoalSetting = () => {
     });
   };
 
-  const getRandomTip = (aiTips) => {
+  const getRandomTip = (aiTips, goalId) => {
     if (!aiTips || aiTips.length === 0) return "Keep up the great work!";
-    return aiTips[Math.floor(Math.random() * aiTips.length)];
+    // Use goalId to ensure consistent tip for each goal
+    const index = goalId ? (goalId.charCodeAt(0) + goalId.length) % aiTips.length : 0;
+    return aiTips[index];
   };
 
   const getPriorityColor = (priority) => {
@@ -884,7 +886,7 @@ const GoalSetting = () => {
                       <span className="text-lg">🤖</span>
                       <div>
                         <p className="text-xs font-medium text-blue-700 mb-1">AI Tip</p>
-                        <p className="text-sm text-blue-800">{getRandomTip(goal.aiTips)}</p>
+                        <p className="text-sm text-blue-800">{getRandomTip(goal.aiTips, goal._id)}</p>
                       </div>
                     </div>
                   </div>
