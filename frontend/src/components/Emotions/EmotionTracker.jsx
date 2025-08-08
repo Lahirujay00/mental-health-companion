@@ -252,7 +252,7 @@ const EmotionTracker = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await fetch(`http://localhost:5002/api/emotions/${editingEntry.id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/emotions/${editingEntry.id}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -303,7 +303,7 @@ const EmotionTracker = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await fetch(`http://localhost:5002/api/emotions/${entryId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/emotions/${entryId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
