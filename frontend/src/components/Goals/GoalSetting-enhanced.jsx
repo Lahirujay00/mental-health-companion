@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../config/api.js';
 
 const GoalSetting = () => {
   const [goals, setGoals] = useState([]);
@@ -62,7 +63,7 @@ const GoalSetting = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5002/api/goals', {
+      const response = await fetch(`${API_BASE_URL}/goals`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -87,7 +88,7 @@ const GoalSetting = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5002/api/goals/analytics', {
+      const response = await fetch(`${API_BASE_URL}/goals/analytics`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -124,7 +125,7 @@ const GoalSetting = () => {
         }
       };
 
-      const response = await fetch('http://localhost:5002/api/goals', {
+      const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -157,7 +158,7 @@ const GoalSetting = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/log`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}/log`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -188,7 +189,7 @@ const GoalSetting = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/checkin`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}/checkin`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -219,7 +220,7 @@ const GoalSetting = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGoal } from '../../contexts/GoalContext.jsx';
+import { API_BASE_URL } from '../../config/api.js';
 
 const Journal = () => {
   const { user } = useAuth();
@@ -59,7 +60,7 @@ const Journal = () => {
 
         // Test the API first
         try {
-          const testResponse = await fetch('http://localhost:5002/api/journal/test', {
+          const testResponse = await fetch(`${API_BASE_URL}/journal/test`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
@@ -76,7 +77,7 @@ const Journal = () => {
           console.log('API test error:', testError);
         }
 
-        const response = await fetch('http://localhost:5002/api/journal', {
+        const response = await fetch(`${API_BASE_URL}/journal`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -216,7 +217,7 @@ const Journal = () => {
 
       console.log('Sending journal entry:', newEntry); // Debug log
 
-      const response = await fetch('http://localhost:5002/api/journal', {
+      const response = await fetch(`${API_BASE_URL}/journal`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -338,7 +339,7 @@ const Journal = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5002/api/journal/${entryId}`, {
+      const response = await fetch(`${API_BASE_URL}/journal/${entryId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
