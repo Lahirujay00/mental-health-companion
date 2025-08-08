@@ -23,7 +23,8 @@ app.use(cors({
     'http://localhost:3001',
     'http://localhost:3002',
     'https://mental-health-companion-beige.vercel.app',
-    'https://mental-health-companion-e29c.vercel.app', // Your frontend URL
+    'https://mental-health-companion-e29c.vercel.app',
+    'https://mental-health-companion-kappa.vercel.app',
     'https://*.vercel.app' // Allow all Vercel deployments
   ],
   credentials: true
@@ -172,5 +173,3 @@ if (process.env.VERCEL) {
     });
   });
 }
-
-module.exports = app;
