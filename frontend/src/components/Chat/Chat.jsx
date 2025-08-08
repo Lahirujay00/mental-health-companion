@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGoal } from '../../contexts/GoalContext.jsx';
-import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config/api.js';
 
 // Mental Health Chat Component
