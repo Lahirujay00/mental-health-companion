@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { API_BASE_URL } from '../../config/api.js';
 
 const emotionTypes = [
   { emoji: '😊', name: 'Happy', category: 'positive', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
@@ -67,8 +68,8 @@ const Dashboard = () => {
 
         // Fetch stats and activities in parallel
         const [statsResponse, activitiesResponse] = await Promise.all([
-          fetch('http://localhost:5002/api/dashboard/stats', { headers }),
-          fetch('http://localhost:5002/api/dashboard/activities?limit=4', { headers })
+          fetch(`${API_BASE_URL}/api/dashboard/stats`, { headers }),
+          fetch(`${API_BASE_URL}/api/dashboard/activities?limit=4`, { headers })
         ]);
 
         if (statsResponse.ok) {
