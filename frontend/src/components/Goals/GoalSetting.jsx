@@ -147,7 +147,23 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
   };
 
   const getRandomTip = (aiTips, goalId) => {
-    if (!aiTips || aiTips.length === 0) return "Keep up the great work!";
+    if (!aiTips || aiTips.length === 0) {
+      // Generate a default tip if no AI tips are available
+      const defaultTips = [
+        "Keep up the great work!",
+        "Every small step counts towards your goal!",
+        "You're making progress, stay motivated!",
+        "Remember why you started this journey!",
+        "Consistency is key to success!",
+        "You've got this! Keep pushing forward!",
+        "Small improvements add up to big changes!",
+        "Stay focused on your mental health goals!",
+        "Your well-being is worth the effort!",
+        "Progress, not perfection!"
+      ];
+      const index = goalId ? (goalId.charCodeAt(0) + goalId.length) % defaultTips.length : 0;
+      return defaultTips[index];
+    }
     // Use goalId to ensure consistent tip for each goal
     const index = goalId ? (goalId.charCodeAt(0) + goalId.length) % aiTips.length : 0;
     return aiTips[index];
