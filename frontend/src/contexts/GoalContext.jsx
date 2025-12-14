@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api.js';
 
 const GoalContext = createContext();
 
@@ -75,25 +76,21 @@ export const GoalProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Find or create a daily goal for this category
-      const response = await fetch('http://localhost:5002/api/goals/update-daily-progress', {
+      const response = await fetch(`${API_BASE_URL}/goals/update-daily-progress`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          category,
-          activityType,
-          date: new Date().toDateString()
-        })
+        body: JSON.stringify({ category, activityType })
       });
 
-      if (!response.ok) {
-        console.error('Failed to update backend goal progress');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Backend goal progress updated:', data);
       }
     } catch (error) {
-      console.error('Error updating backend goal:', error);
+      console.error('Error updating backend goal progress:', error);
     }
   };
 
@@ -158,10 +155,9 @@ export const GoalProvider = ({ children }) => {
         return;
       }
 
-      const response = await fetch('http://localhost:5002/api/goals', {
+      const response = await fetch(`${API_BASE_URL}/goals`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -184,7 +180,7 @@ export const GoalProvider = ({ children }) => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/log`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}/log`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -216,7 +212,7 @@ export const GoalProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}/checkin`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}/checkin`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -49,11 +49,11 @@ router.post('/', authenticateToken, async (req, res) => {
     let aiResponseText;
     
     // List of free models to try (in order of preference)
+    // Note: Free models change frequently. Update this list if models become unavailable.
     const freeModels = [
-      "google/gemma-2-9b-it:free",
-      "meta-llama/llama-3.1-8b-instruct:free", 
-      "microsoft/phi-3-mini-128k-instruct:free",
-      "huggingface/microsoft/Phi-3-mini-4k-instruct:free"
+      "meta-llama/llama-3.2-3b-instruct:free",
+      "mistralai/devstral-2512:free",
+      "google/gemini-2.0-flash-exp:free"
     ];
     
     let modelUsed = null;
@@ -86,7 +86,7 @@ router.post('/', authenticateToken, async (req, res) => {
             headers: {
               'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
               'Content-Type': 'application/json',
-              'HTTP-Referer': 'http://localhost:3000',
+              'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:3000',
               'X-Title': 'Mental Health Companion'
             },
             timeout: 15000
@@ -109,13 +109,21 @@ router.post('/', authenticateToken, async (req, res) => {
         if (modelError.response?.data) {
           console.log(`${model} Error Details:`, modelError.response.data);
         }
+        
+        // If rate limited (429) or provider error, add a small delay before trying next model
+        if (modelError.response?.status === 429) {
+          console.log('Rate limit hit, waiting 2 seconds before trying next model...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
         // Continue to next model
         continue;
       }
     }
     
-    // If no model worked, use fallback
+    // If no model worked, use intelligent fallback responses
     if (!aiResponseText) {
+    console.log('All AI models failed, using intelligent fallback responses');
     const lowerMessage = message.toLowerCase();
       
       // Analyze sentiment and keywords for more intelligent responses

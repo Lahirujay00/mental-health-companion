@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGoal } from '../../contexts/GoalContext.jsx';
+import { API_BASE_URL } from '../../config/api.js';
 
 const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
 
   useEffect(() => {
     fetchGoals().then(() => setLoading(false));
-  }, []);
+  }, [fetchGoals]);
 
   const addGoal = async () => {
     if (!newGoal.title || !newGoal.target) {
@@ -70,7 +71,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
         }
       };
 
-      const response = await fetch('http://localhost:5002/api/goals', {
+      const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -106,7 +107,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
         return;
       }
 
-      const response = await fetch(`http://localhost:5002/api/goals/${goalId}`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${goalId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -145,9 +146,27 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
     });
   };
 
-  const getRandomTip = (aiTips) => {
-    if (!aiTips || aiTips.length === 0) return "Keep up the great work!";
-    return aiTips[Math.floor(Math.random() * aiTips.length)];
+  const getRandomTip = (aiTips, goalId) => {
+    if (!aiTips || aiTips.length === 0) {
+      // Generate a default tip if no AI tips are available
+      const defaultTips = [
+        "Keep up the great work!",
+        "Every small step counts towards your goal!",
+        "You're making progress, stay motivated!",
+        "Remember why you started this journey!",
+        "Consistency is key to success!",
+        "You've got this! Keep pushing forward!",
+        "Small improvements add up to big changes!",
+        "Stay focused on your mental health goals!",
+        "Your well-being is worth the effort!",
+        "Progress, not perfection!"
+      ];
+      const index = goalId ? (goalId.charCodeAt(0) + goalId.length) % defaultTips.length : 0;
+      return defaultTips[index];
+    }
+    // Use goalId to ensure consistent tip for each goal
+    const index = goalId ? (goalId.charCodeAt(0) + goalId.length) % aiTips.length : 0;
+    return aiTips[index];
   };
 
   const getCategoryColor = (category) => {
@@ -475,7 +494,7 @@ const GoalSetting = ({ setShowProgressLog, setShowCheckIn, setSelectedGoal }) =>
                       <span className="text-lg">🤖</span>
                       <div>
                         <p className="text-xs font-medium text-blue-700 mb-1">AI Tip</p>
-                        <p className="text-sm text-blue-800">{getRandomTip(goal.aiTips)}</p>
+                        <p className="text-sm text-blue-800">{getRandomTip(goal.aiTips, goal._id)}</p>
                       </div>
                     </div>
                   </div>
