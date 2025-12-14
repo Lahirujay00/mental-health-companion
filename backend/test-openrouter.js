@@ -1,15 +1,21 @@
 require('dotenv').config();
 const axios = require('axios');
 
-async function testOpenRouter() {
-  console.log('Testing OpenRouter API...');
-  console.log('API Key length:', process.env.OPENROUTER_API_KEY?.length || 0);
-  
+const modelsToTest = [
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "google/gemma-2-9b-it:free",
+  "microsoft/phi-3-mini-128k-instruct:free",
+  "qwen/qwen-2-7b-instruct:free",
+  "nousresearch/hermes-3-llama-3.1-405b:free"
+];
+
+async function testModel(model) {
   try {
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
       {
-        model: "meta-llama/llama-3.2-3b-instruct:free",
+        model: model,
         messages: [
           {
             role: "system",
@@ -17,10 +23,10 @@ async function testOpenRouter() {
           },
           {
             role: "user",
-            content: "Hello, how are you?"
+            content: "Hi"
           }
         ],
-        max_tokens: 100,
+        max_tokens: 50,
         temperature: 0.7
       },
       {
@@ -34,24 +40,62 @@ async function testOpenRouter() {
       }
     );
 
-    console.log('✅ SUCCESS! OpenRouter API is working');
-    console.log('Response:', response.data.choices[0].message.content);
-    console.log('\nFull response data:', JSON.stringify(response.data, null, 2));
+    return {
+      model,
+      status: '✅ WORKING',
+      response: response.data.choices[0].message.content.substring(0, 80)
+    };
     
   } catch (error) {
-    console.error('❌ ERROR: OpenRouter API failed');
-    console.error('Status:', error.response?.status);
-    console.error('Error message:', error.message);
-    console.error('Error data:', error.response?.data);
-    
-    if (error.response?.status === 401) {
-      console.error('\n⚠️  API Key issue - Your key might be invalid or expired');
-    } else if (error.response?.status === 429) {
-      console.error('\n⚠️  Rate limit exceeded - Too many requests');
-    } else if (error.response?.status === 402) {
-      console.error('\n⚠️  Payment required - Free tier limit reached');
-    }
+    return {
+      model,
+      status: `❌ FAILED (${error.response?.status || error.message})`,
+      error: error.response?.data?.error?.message || error.message
+    };
   }
 }
 
-testOpenRouter();
+async function testAllModels() {
+  console.log('Testing OpenRouter Free Models...\n');
+  console.log('API Key length:', process.env.OPENROUTER_API_KEY?.length || 0);
+  console.log('='.repeat(80));
+  
+  const results = [];
+  
+  for (const model of modelsToTest) {
+    console.log(`\nTesting: ${model}`);
+    const result = await testModel(model);
+    results.push(result);
+    
+    if (result.status.includes('WORKING')) {
+      console.log(`${result.status}`);
+      console.log(`Response: ${result.response}...`);
+    } else {
+      console.log(`${result.status}`);
+      console.log(`Error: ${result.error}`);
+    }
+  }
+  
+  console.log('\n' + '='.repeat(80));
+  console.log('\nSUMMARY - Working Models:');
+  console.log('='.repeat(80));
+  
+  const workingModels = results.filter(r => r.status.includes('WORKING'));
+  if (workingModels.length > 0) {
+    workingModels.forEach((m, i) => {
+      console.log(`${i + 1}. ${m.model}`);
+    });
+    
+    console.log('\n📋 Use this array in your code:');
+    console.log('const freeModels = [');
+    workingModels.forEach((m, i) => {
+      const comma = i < workingModels.length - 1 ? ',' : '';
+      console.log(`  "${m.model}"${comma}`);
+    });
+    console.log('];');
+  } else {
+    console.log('❌ No working models found!');
+  }
+}
+
+testAllModels();
