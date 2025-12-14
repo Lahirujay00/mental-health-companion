@@ -50,10 +50,10 @@ router.post('/', authenticateToken, async (req, res) => {
     
     // List of free models to try (in order of preference)
     const freeModels = [
+      "meta-llama/llama-3.2-3b-instruct:free",
+      "meta-llama/llama-3.1-8b-instruct:free",
       "google/gemma-2-9b-it:free",
-      "meta-llama/llama-3.1-8b-instruct:free", 
-      "microsoft/phi-3-mini-128k-instruct:free",
-      "huggingface/microsoft/Phi-3-mini-4k-instruct:free"
+      "microsoft/phi-3-mini-128k-instruct:free"
     ];
     
     let modelUsed = null;
